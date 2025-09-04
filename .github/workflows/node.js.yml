@@ -1,0 +1,49 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }} (with cache)
+        if: ${{ hashFiles('web/package-lock.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Use Node.js ${{ matrix.node-version }} (no cache fallback)
+        if: ${{ hashFiles('web/package-lock.json') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install
+        working-directory: ./web
+        run: npm ci
+
+      - name: Build
+        working-directory: ./web
+        run: npm run build --if-present
+
+      - name: Test
+        working-directory: ./web
+        run: npm test
+
+      - name: Deploy
+        if: ${{ github.ref == 'refs/heads/main' && matrix.node-version == '22.x' && github.event_name == 'push' }}
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: web/build
