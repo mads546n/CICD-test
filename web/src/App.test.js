@@ -6,7 +6,7 @@ test('renders learn react link', () => {
   const linkElement = screen.getByText(/learn react/i);
   expect(linkElement).toBeInTheDocument();
   let button = screen.getByRole("button");
-  expect(button).toHaveTextContent("Login");
+  expect(button).toHaveTextContent("Logiiiin");
 });
 test('has login-button', ()=>{
   render(<App />);
